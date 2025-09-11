@@ -3,6 +3,8 @@ title: "Lab 2 - Data Structures in R"
 subtitle: "Environmental Data Analytics"
 author: "John Fay & Luana Lima"
 date: "Fall 2025"
+editor_options: 
+  chunk_output_type: console
 ---
 
 ## Objective
@@ -53,25 +55,25 @@ Add comments below to indicate what each operation does.(First answer is provide
 # Returns the 3rd item in the vector
 vector1[3]
 
-#
+# returns max value of vector
 max(vector1)
 
 #Create another vector of the values 10 thru 15
 vector4 <- c(10:15)
 
-#
+# Combines 2 vectors
 c(vector1, vector4)
 
-#
+# Multiply v1 and v4
 vector1 * vector4
 
-#
+# Multiply by 10
 vector1 * 10
 
-#
+# Make uppercase
 toupper(vector2) 
 
-#
+# Inverts the logic, switches T and F
 !vector3
 
 ```
@@ -83,16 +85,17 @@ Find a 5-day forecast of temperatures (Fahrenheit) for Durham, North Carolina. C
 ```{r Vector Exercise}
 
 #Assign to the variable 'temps_F' a vector of high temperatures in F
-
+temps_f <- c(80, 81, 81, 83, 83) #5-day forecast of high temp
 
 #What is the average of these temperatures 
-
+mean(temps_f) #mean temp is 81.6 F
 
 #Compute the difference between each temperature and the average calculated above
-
+temps_f-81.6 #-1.6 -0.6 -0.6  1.4  1.4
 
 #Subtract 32 and multiply by 5/9ths to create a vector in Celsius
-
+temp_c <- (temps_f-32)*(5/9)
+temp_c  #26.66667 27.22222 27.22222 28.33333 28.33333
 
 ```
 
@@ -101,13 +104,13 @@ Find a 5-day forecast of temperatures (Fahrenheit) for Durham, North Carolina. C
 Complete the comments below:
 ```{r Creating Matrices}
 # Matrices ----
-matrix1 <- matrix(1:20, nrow = 5,ncol = 4) # 
+matrix1 <- matrix(1:20, nrow = 5,ncol = 4) # create matrix values 1 thru 20 filled by column
 matrix1
-#matrix1 has __ rows and __ columns
+#matrix1 has 5 rows and 4 columns
 
-matrix2 <- matrix(1:20, nrow = 5, ncol = 4, byrow = TRUE) #
+matrix2 <- matrix(1:20, nrow = 5, ncol = 4, byrow = TRUE) # create matrix 1 thru 20 filled by rows
 matrix2
-#matrix2 has __ rows and __ columns
+#matrix2 has 5 rows and 4 columns
 
 matrix3 <- matrix(
   data = 1:20, 
@@ -115,10 +118,11 @@ matrix3 <- matrix(
   ncol = 4, 
   byrow = TRUE, # return after comma continues the line
   dimnames = list(
-    c("uno", "dos", "tres", "quatro", "cinco"),
-    c("un", "deux", "trois", "quatre")
+    c("uno", "dos", "tres", "quatro", "cinco"), #names rows
+    c("un", "deux", "trois", "quatre") #names columns
     )
   ) 
+matrix3
 
 ```
 
@@ -126,17 +130,17 @@ matrix3 <- matrix(
 Add comments in the code chunk below to indicate type of vectors created and what each operation does.
 ```{r Matrix Operations}
 
-matrix1[4, 1] #
+matrix1[4, 1] # 4th row, 1st column
 
-matrix1[4,  ] #
+matrix1[4,  ] # all of row 4
 
-matrix1[ , 3] #
+matrix1[ , 3] # all of column 3
 
-matrix1[c(12, 14)] #
+matrix1[c(12, 14)] # 12th and 14th item
 
-matrix1[c(12:14)] #
+matrix1[c(12:14)] # 12th thru 14th item (slices)
 
-matrix1[2:4, 1:3] #
+matrix1[2:4, 1:3] # 2 thru 4 row, 1 thru 3 column
 
 #Create a vector of 6 values
 values = c(1, 26, 24, 68, 3, 44)
@@ -155,14 +159,17 @@ matrix4 <- matrix(
     cnames)
   ) # 
 
-matrix4 #
+matrix4 # return
 
-matrix4['R2','C1']
+
 ```
 
 ### Exercise 1b: Matrices
 Compute the mean of column "C2" in matrix4. (Should be 14.5)
 ```{r Matrix Exercise}
+
+matrix4
+mean(matrix4[ ,2]) #14.5
 
 ```
 
@@ -186,19 +193,19 @@ list1 <- list(
 ```{r List Operations}
 # List Operations
 
-#
+# show list
 list1
 
-#
+# show age
 list1$age
 
-#
+# list categories
 names(list1)
 
-#
+# list numbers
 list1[1:2]
 
-#
+# update name value to janelle
 list1$name = "Janelle"
 
 #
@@ -216,9 +223,10 @@ f <- c(TRUE, TRUE, TRUE, FALSE) # What type of vector?
 
 #Combine the vectors into a dataframe
 dataframe1 <- data.frame(d,e,f) 
+dataframe1
 
 #Set the column names & View
-names(dataframe1) <- c("ID","Color","Passed"); View(dataframe1) # 
+names(dataframe1) <- c("ID","Color","Passed"); View(dataframe1) # update columns
 
 #Add a new column to the dataframe
 dataframe1$month <- c('Jan','Feb', 'Mar', 'Apr')
