@@ -558,7 +558,7 @@ with a simple function that is built into R, <code>seq</code></p>
 <pre class="r"><code>ten_sequence &lt;- seq(1, 10)
 ten_sequence</code></pre>
 <pre><code>##  [1]  1  2  3  4  5  6  7  8  9 10</code></pre>
-<pre class="r"><code>seq(1, 10, 2) # from, to, by</code></pre>
+<pre class="r"><code>seq(1, 10, 2) # from, to, by increments of</code></pre>
 <pre><code>## [1] 1 3 5 7 9</code></pre>
 <p>The basic form of a function is <code>functionname()</code>, and the
 packages we will use in this class will use these basic forms. However,
@@ -646,7 +646,7 @@ meal &lt;- recipe4(4); meal</code></pre>
 <pre><code>## [1] 3</code></pre>
 <pre class="r"><code>recipe6 &lt;- function(x){
   ifelse(x&lt;3, x*2, x/2) #log_exp, if TRUE, if FALSE
-  
+  #ifelse statement shortens recipe4 into 1 line of code
 }
 
 meal4 &lt;- recipe6(4); meal4</code></pre>

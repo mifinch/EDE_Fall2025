@@ -1,9 +1,4 @@
-title: "2: Reproducibility and Coding Basics"
-subtitle: "Environmental Data Analytics"
-author: "John Fay and Luana Lima | Developed by Kateri Salk"
-date: "Fall 2025"
-output: pdf_document
----
+title: "2: Reproducibility and Coding Basics" subtitle: "Environmental Data Analytics" author: "John Fay and Luana Lima \| Developed by Kateri Salk" date: "Fall 2025" output: pdf_document ---
 
 ## Objectives
 
@@ -149,7 +144,8 @@ seq(1, 10)
 ten_sequence <- seq(1, 10)
 ten_sequence
 
-seq(1, 10, 2) # from, to, by
+seq(1, 10, 2) # from, to, by increments of
+
 ```
 
 The basic form of a function is `functionname()`, and the packages we will use in this class will use these basic forms. However, there may be situations when you will want to create your own function. Below is a description of how to write functions through the metaphor of creating a recipe (credit: @IsabellaGhement on Twitter).
@@ -236,7 +232,7 @@ meal3 <- recipe5(3); meal3
 
 recipe6 <- function(x){
   ifelse(x<3, x*2, x/2) #log_exp, if TRUE, if FALSE
-  
+  #ifelse statement shortens recipe4 into 1 line of code
 }
 
 meal4 <- recipe6(4); meal4
