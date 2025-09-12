@@ -4,6 +4,8 @@ subtitle: "Environmental Data Analytics"
 author: "John Fay & Luana Lima"
 date: "Fall 2025"
 output: pdf_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -37,7 +39,7 @@ cars$speed
 How would you store it on another object?
 
 ```{r}
-car_speed <- cars$speed
+car_speed <- cars$speed 
 car_speed
 ```
 
@@ -47,18 +49,18 @@ Is the new object you create a data frame?
 
 ```{r}
 #Option 1
-class(car_speed)
+class(car_speed) #numeric value
 
 #Option 2
-is.data.frame(car_speed)
+is.data.frame(car_speed) #FALSE not data frame
 ```
 
 How could you make it a data frame?
 
 ```{r}
-df_car_speed <- as.data.frame(car_speed)
+df_car_speed <- as.data.frame(car_speed) #turn into df
 df_car_speed
-class(df_car_speed)
+class(df_car_speed) #df
 ```
 
 ## Adding columns to a data frame
@@ -66,18 +68,18 @@ class(df_car_speed)
 How could you add columns to *df_car_speed*?
 
 ```{r}
-car_dist <- cars$dist
+car_dist <- cars$dist #save as variable
 
-#Option 1
+#Option 1 combine 2 columns
 df <- cbind(df_car_speed,car_dist)  #similarly rows could be added using rbind()
 class(df)
-df
+df #back to original w/ both saved as df
 
 #Or Option 2 - transform into a data frame before binding
 df_car_dist <- as.data.frame(car_dist)  #op2
 df_opt2 <- cbind(df_car_speed,df_car_dist)
 class(df_opt2)
-df_opt2
+df_opt2 #built df from 2 vectors
 
 ```
 
@@ -103,14 +105,14 @@ create_df
 Some useful functions to use with data frames.
 
 ```{r}
-ncol(df)  
-nrow(df)  
+ncol(df)  #number of columns
+nrow(df)  #number of rows
 length(df)  #same as ncol
-summary(df)
+summary(df) #summar statistics
 head(df) #show the first 6 rows of df
 
 #If you know the number of the column you want you can refer to that to access column
-df[,1]
+df[,1] #gives 2st column
 
 #you could also use this notation to delete columns
 df <- df[,-2]
