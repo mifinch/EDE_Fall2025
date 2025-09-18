@@ -3,6 +3,8 @@ title: "3: Data Exploration"
 author: "Environmental Data Analytics | John Fay & Luana Lima"
 date: "Fall 2025"
 output: pdf_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ## Lesson Objectives
@@ -16,7 +18,7 @@ output: pdf_document
 
 Why is data exploration our first step in analyzing a dataset? What information do we gain? How does data exploration aid in our decision-making for data analysis steps further down the pipeline?
 
->Answer: 
+>Answer: Data exploration is important for recognizing patterns and trends in data. 
 
 ---
 
@@ -25,10 +27,19 @@ Why is data exploration our first step in analyzing a dataset? What information 
 ```{r, Setup-Import-Explore, message = FALSE}
 ## -Set up-
 # 1. Load packages (tidyverse, here)
+library(tidyverse)
+library(here)
 
 # 2. Check the working directory
+getwd()
+here() #confirms here and getwd are referring to project directory
 
 # 3. Import datasets
+USGS.flow.data <- read.csv(
+  file = here('Data/Processed/USGS_Site02085000_Flow_Processed.csv'),
+  stringsAsFactors = TRUE, # chr to factor
+  colClasses = c('site_no' = 'factor') # site no. from int to factor
+)
 
 ## -Initial Exploration-
 
@@ -36,11 +47,16 @@ Why is data exploration our first step in analyzing a dataset? What information 
 # Alternate option: click on data frame in Environment tab
 
 #View column names and the structure of the dataset
+colnames(USGS.flow.data)
+str(USGS.flow.data)
 
 # Check our date column: is it a date object?
+class(USGS.flow.data$datetime) #is factor, want date object
+
 
 # Change it to a date object and confirm
-
+USGS.flow.data$datetime <- as.Date(USGS.flow.data$datetime, format='%Y-%m-%d')
+class(USGS.flow.data$datetime) #now in date format
 
 ```
 
@@ -57,31 +73,31 @@ Visualize count data for categorical variables.
 
 ```{r, fig.height = 3, fig.width = 4}
 ggplot(data = USGS.flow.data, aes(x = discharge.mean.approval)) +
-  geom_bar()
+  geom_bar() #categorical - bar plot
 ```
 
 ### Histogram (function: geom_histogram)
 Visualize distributions of values for continuous numerical variables. What is happening in each line of code? Insert a comment above each line.
 
 ```{r, fig.height = 3, fig.width = 4}
-# 
+# create histogram 
 ggplot(USGS.flow.data) +
   geom_histogram(aes(x = discharge.mean))
 
-# 
+# change binwidth to 10, zooms out
 ggplot(USGS.flow.data) +
   geom_histogram(aes(x = discharge.mean), binwidth = 10)
 
-# 
+# change number of bins to 20, zooms in
 ggplot(USGS.flow.data) +
   geom_histogram(aes(x = discharge.mean), bins = 20)
 
-# 
+# values up to 500; define extent
 ggplot(USGS.flow.data, aes(x = discharge.mean)) +
   geom_histogram(binwidth = 10) + 
   scale_x_continuous(limits = c(0, 500))
   
-# 
+# look at gage height mean (continuous variables)
 ggplot(USGS.flow.data) +
   geom_histogram(aes(x = gage.height.mean))
 
@@ -92,14 +108,16 @@ ggplot(USGS.flow.data) +
 An alternate to a histogram is a frequency polygon graph (distributions of values for continuous numerical variables). Instead of displaying bars,  counts of continuous variables are displayed as lines. This is advantageous if you want to display multiple variables or categories of variables at once.
 
 ```{r, fig.height = 3, fig.width = 4}
-#
+#compare diff distributions
 ggplot(USGS.flow.data) +
   geom_freqpoly(aes(x = gage.height.mean), bins = 50) +
   geom_freqpoly(aes(x = gage.height.min), bins = 50, color = "darkgray") +
   geom_freqpoly(aes(x = gage.height.max), bins = 50,  lty = 2) +
   scale_x_continuous(limits = c(0, 10))
+#lty = line type
+#see Help > data visualization cheat sheet
 
-#
+# color = categorical of approval
 ggplot(USGS.flow.data) +
   geom_freqpoly(aes(x = gage.height.mean, color = gage.height.mean.approval), bins = 50) +
   scale_x_continuous(limits = c(0, 10)) +
@@ -122,15 +140,15 @@ A box-and-whisker plot is yet another alternative to histograms (distributions o
 An alternate option is a violin plot, which displays density distributions, somewhat like a hybrid of the box-and-whiskers and the frequency polygon plot.
 
 ```{r, fig.height = 3, fig.width = 4}
-#
+# box plot
 ggplot(USGS.flow.data) +
   geom_boxplot(aes(x = gage.height.mean.approval, y = gage.height.mean))
 
-#
+# x= gage height mean, y= discharge mean
 ggplot(USGS.flow.data) +
   geom_boxplot(aes(x = gage.height.mean, y = discharge.mean, group = cut_width(gage.height.mean, 1)))
 
-#
+#violin plot, width is proportional to number of values
 ggplot(USGS.flow.data) +
   geom_violin(aes(x = gage.height.mean.approval, y = gage.height.mean), 
               draw_quantiles = c(0.25, 0.5, 0.75))
@@ -145,6 +163,7 @@ ggplot(USGS.flow.data) +
 
 ggplot(USGS.flow.data) +
   geom_point(aes(x = datetime, y = discharge.mean))
+#date time in x axis is good for time series analysis
 ```
 
 Question: under what circumstances would it be beneficial to use each of these graph types (bar plot, histogram, frequency polygon, box-and whisker, violin, scatterplot)?
