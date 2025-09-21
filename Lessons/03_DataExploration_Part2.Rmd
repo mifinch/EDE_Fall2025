@@ -88,6 +88,7 @@ ggplot(USGS.flow.data) +
 ggplot(USGS.flow.data) +
   geom_histogram(aes(x = discharge.mean), binwidth = 10)
 
+
 # change number of bins to 20, zooms in
 ggplot(USGS.flow.data) +
   geom_histogram(aes(x = discharge.mean), bins = 20)

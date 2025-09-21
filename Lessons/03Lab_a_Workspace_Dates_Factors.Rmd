@@ -3,6 +3,8 @@ title: "Lab 3b - Workspaces, Dates, and Factors"
 author: "Environmental Data Analytics | John Fay and Luana Lima "
 date: "Fall 2025"
 output: pdf_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ## Objectives
@@ -80,9 +82,22 @@ print(filenames)
 
 # 1. Read the 'NTL-LTER_Lake_ChemistryPhysics_Raw.csv' into a dataframe
 
+ntl_ltr <- read.csv(
+  file = here("./Data/Raw/NTL-LTER_Lake_ChemistryPhysics_Raw.csv"),
+  stringsAsFactors = TRUE  #chr stored as factor
+  ) 
 
 # 2.
 library(tidyverse);library(here)
+
+#read in all csv files starting w/ "EPAair_O3" into single data frame
+folder <- here ('Data', 'Raw')
+files <- dir (folder, pattern = "EPAair_O3*.*", full.names = TRUE)
+
+EPAData <- files %>% #apply 2 files
+  map(read.csv) %>% #read csv
+  bind_rows() #combine by rows
+
 
 ```
 
@@ -102,10 +117,9 @@ Remember formatting of dates in R:
 # An example is provided to get you started.
 # (code must be uncommented)
 today <- Sys.Date()
-format(today, format = "%B")
-#format(today, format = "")
-#format(today, format = "")
-#format(today, format = "")
+format(today, format = "%B") #September
+format(today, format = "%Y") #2025
+format(today, format = "%y") #25
 
 ```
 
@@ -131,10 +145,10 @@ str_today2 <- "Feb 7, 2023"
 date_obj_today <- mdy(str_today2)
 date_obj_today
 
-#Ex_3 - on your own...
+#Ex_3 - on your own...use dmy
 str_juneteenth <- "19 June 1865"
-#date_juneteenth <- ()
-#date_juneteenth
+date_juneteenth <- dmy(str_juneteenth)
+date_juneteenth
 ```
 ### The century issue
 
@@ -144,7 +158,7 @@ What happens when you the year in your date column is represented by two digits?
 #century issue
 str_past <- "55-feb-3"
 date_obj_past <- ymd(str_past)
-date_obj_past
+date_obj_past #"2055-02-03"
 
 #Build a function to fix year that is more general than the one discussed in the lesson
 fix.early.dates <- function(d, cutoff) {
@@ -186,7 +200,7 @@ In some cases when dates are provided as integers, you may need to provide an or
 
 ```{r dateorigin}
 #Check if "1970-01-01" is your origin date.
-lubridate::origin
+lubridate::origin #"1970-01-01 UTC"
 
 ```
 
@@ -202,7 +216,7 @@ library(tidyverse);library(lubridate); library(here)
 
 #Read in data, don't convert strings to factors
 sites <- read.csv(here('Data/Raw/NWIS_SiteFlowData_NE_RAW.csv'))
-dim(sites)
+dim(sites) #154 obs, 4 variables
 
 #Convert date column to date object
 sites$date <- ymd_hms(sites$date)
@@ -236,13 +250,13 @@ summary(sites$dow)
 sites$dow <- factor(sites$dow)
 
 ## What class is the dow column now?
-class(sites$dow)
+class(sites$dow) #factor
 
 #List the unique values in the column
 unique(sites$dow)
 
 #Summary - is it meaningful?
-summary(sites$dow)
+summary(sites$dow) #shows how many times each day of the week appears in the dataset
 
 #Show the levels associated with our factor column
 levels(sites$dow)
@@ -337,10 +351,19 @@ usgs_flow_data$datetime = mdy(usgs_flow_data$datetime)
 usgs_flow_data$month <- month(usgs_flow_data$datetime)
 
 #Convert to a factor, with labels and levels
+usgs_flow_data$month <- factor (usgs_flow_data$month)
 
+#add all months
+usgs_flow_data$month <- factor (
+  usgs_flow_data$month,
+  levels = seq(1:12),
+  labels = month.abb
+)
 
 #Plot
-
+ggplot(usgs_flow_data,aes(x=month)) +
+  geom_bar() +
+  scale_x_discrete(drop=FALSE)
 
 ```
 

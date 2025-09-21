@@ -3,6 +3,8 @@ title: "Lab 3a - Exercises"
 author: "Environmental Data Analytics | John Fay and Luana Lima "
 date: "Fall 2025"
 output: pdf_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ## Set up the session
@@ -21,13 +23,14 @@ here()
 
 #Import data
 pm25 <- read.csv(
-  #----ENTER THE FILENAME HERE, USING THE here() PACKAGE----
+  here('Data/Raw/EPAair_PM25_NC2019_raw.csv'),  #----ENTER THE FILENAME HERE, USING THE here() PACKAGE----
   stringsAsFactors = TRUE,
   colClasses = c("Site.ID"='factor')
 )
 
 #Fix the date
-pm25$Date <- mdy(pm25$Date)
+pm25$Date <- mdy(pm25$Date) #changed date from factor to date 
+class(pm25$Date) #date
 
 ```
 
@@ -39,16 +42,20 @@ pm25$Date <- mdy(pm25$Date)
 
 ```{r Explore the data}
 # Compute the number of different sites
-
+unique(pm25$Site.ID) #25 levels
 
 # Compute the mean and median PM 2.5 concentration
-
+mean(pm25$Daily.Mean.PM2.5.Concentration) #7.68
+median(pm25$Daily.Mean.PM2.5.Concentration) #7.4
+summary(pm25$Daily.Mean.PM2.5.Concentration)
 
 # What are the units
-
+summary(pm25$UNITS) #ug/m3 LC 
 
 # What is the date range (min and max dates)
-
+min(pm25$Date) #2019-01-01
+max(pm25$Date) #2019-12-31
+summary(pm25$Date)
 ```
 
 
@@ -61,13 +68,28 @@ pm25$Date <- mdy(pm25$Date)
 
 ```{r Visualize the data}
 #Number of samples using each different source 
-
+ggplot(pm25, aes(x=Source)) + geom_bar()
 
 #Distribution of daily mean concentration values
+ggplot(pm25, aes(x=Daily.Mean.PM2.5.Concentration)) + geom_histogram()
+
+ggplot(pm25) + 
+  geom_histogram(aes(x = Daily.Mean.PM2.5.Concentration), bins=20)
 
 
 #Distribution of daily mean concentration, by source
 
+##histogram
+ggplot(pm25) +
+geom_histogram(aes(x=Daily.Mean.PM2.5.Concentration, fill=Source))
+
+##frequency polygon
+ggplot(pm25) + 
+  geom_freqpoly(aes(Daily.Mean.PM2.5.Concentration, color = Source))
+
+##frequency polygon
+ggplot(pm25) + 
+  geom_boxplot(aes(Daily.Mean.PM2.5.Concentration, x=Source))
 
 
 ```
