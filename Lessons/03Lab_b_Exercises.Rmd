@@ -87,9 +87,9 @@ geom_histogram(aes(x=Daily.Mean.PM2.5.Concentration, fill=Source))
 ggplot(pm25) + 
   geom_freqpoly(aes(Daily.Mean.PM2.5.Concentration, color = Source))
 
-##frequency polygon
+##boxplot
 ggplot(pm25) + 
-  geom_boxplot(aes(Daily.Mean.PM2.5.Concentration, x=Source))
+  geom_boxplot(aes(Daily.Mean.PM2.5.Concentration, x=Source)
 
 
 ```
