@@ -30,13 +30,39 @@ This exercise accompanies the lessons in Environmental Data Analytics on Data Wr
 2. Add the appropriate code to reveal the dimensions of the four datasets. 
 
 ```{r setup, message = FALSE}
-#1a 
+#1a load packages
+library(tidyverse); library(lubridate); library(here)
 
-#1b 
+#1b check directory
+here() #/home/guest/EDE_Fall2025
+getwd()
 
-#1c 
+#1c read in EPA Air datasets
+O3_NC2018 <- read.csv(
+  file=here("Data/Raw/EPAair_O3_NC2018_raw.csv"), 
+  stringsAsFactors = TRUE
+)
+
+O3_NC2019 <- read.csv(
+  file=here("Data/Raw/EPAair_O3_NC2019_raw.csv"), 
+  stringsAsFactors = TRUE
+)
+
+PM25_NC2018 <- read.csv(
+  file=here("Data/Raw/EPAair_PM25_NC2018_raw.csv"), 
+  stringsAsFactors = TRUE
+)
+
+PM25_NC2019 <- read.csv(
+  file=here("Data/Raw/EPAair_PM25_NC2019_raw.csv"), 
+  stringsAsFactors = TRUE
+)
 
 #2 
+dim(O3_NC2018)
+dim(O3_NC2019)
+dim(PM25_NC2018)
+dim(PM25_NC2019)
 
 
 ```
