@@ -1,7 +1,8 @@
 ---
 title: 'Demo: Interactive R Markdown'
 author: Environmental Data Analytics | John Fay & Luana Lima 
-output: pdf_document
+output: html_document
+runtime: shiny
 editor_options: 
   chunk_output_type: console
 ---
@@ -82,6 +83,36 @@ Now tweak the above code so that the variable we plot (`tp_ug`) is specified as 
 To do this we need to convince R that the value we associate with the `y` aesthetic is a variable, not a column name. This is done by the odd convention of inserting the variable within the code `!!sym()`. The `!!` (pronounced "bang-bang") combined with `sym()` are "Tidy eval helpers" necessary because tidy-R does away with quotations. See more info [here](https://ggplot2.tidyverse.org/reference/tidyeval.html).
 
 ```{r Tweak plot to use variables, echo=FALSE, eval=FALSE, warning=FALSE}
+#Create plot variables
+the_parameter <- "tp_ug"
+start_year <- 1990
+end_year <- 2016
+  
+#Construct the plot - nitrogen
+my_plot_2 <- nutrient_data %>% 
+  filter(year4 > start_year & year4 < end_year) %>% #adjust year 
+  ggplot(aes(
+    x = sampledate,
+    y = !!sym(the_parameter), #read the parameter
+    color = depth,
+    shape = lakename)) +
+  geom_point(alpha = 0.4, size = 2) +
+  scale_x_date(
+    date_breaks = "1 years",
+    date_labels = '%Y') +
+  scale_shape_manual(values = c(17, 15)) +
+  labs(
+    title = "Concentration over time, by depth and lake",
+    x = "Date", 
+    y = expression(Concentration ~ (mu*g / L)), 
+    shape = "Lake", 
+    color = "Depth (m)") +
+  scale_color_viridis_c(
+    option = "mako", 
+    guide = guide_colorbar(reverse = T),
+    direction = -1)
+
+my_plot_2
 
 ```
 
@@ -93,7 +124,35 @@ Next, we'll one of the uses of using variables in our plotting commands: we'll c
 To do this, rather than setting our variable values in the code chunk, we just set them as inputs to a function. Then we can copy and paste out plotting code above as the code the function executes (i.e. between the `{ }`). From there, we just call the function with the inputs we want to generate a plot. 
 
 ```{r Plot Functions, echo=FALSE, warning=FALSE}
+#create the plot function
+plot_it <- function(the_parameter, start_year, end_year){
+  #Copy the plot
+  nutrient_data %>% 
+    filter(year4 > start_year & year4 < end_year) %>% #adjust year 
+    ggplot(aes(
+      x = sampledate,
+      y = !!sym(the_parameter), #read the parameter
+      color = depth,
+      shape = lakename)) +
+    geom_point(alpha = 0.4, size = 2) +
+    scale_x_date(
+      date_breaks = "1 years",
+      date_labels = '%Y') +
+    scale_shape_manual(values = c(17, 15)) +
+    labs(
+      title = "Concentration over time, by depth and lake",
+      x = "Date", 
+      y = expression(Concentration ~ (mu*g / L)), 
+      shape = "Lake", 
+      color = "Depth (m)") +
+    scale_color_viridis_c(
+      option = "mako", 
+      guide = guide_colorbar(reverse = T),
+      direction = -1)
+}
 
+
+plot_it('po4', 1995, 2002) #parameter, start, end date
 ```
 
 
@@ -160,12 +219,39 @@ Note: Before running this plot, set the previous code chunk to not evaluate
 
 ```{r widget exploration, echo=FALSE}
 # Create a selectInput widget to select which nutrient to display in the plot
-
+selectInput(
+  inputId = 'the_nutrient', 
+  label = 'select the nutrient', #what shows up on the interface
+  choices = c('tn_ug', 'no23'), 
+  selected = 'no23'
+)
 
 # Create a sliderInput to set the date range
-
+sliderInput(
+  inputId = 'year_slider',
+  label = 'Select a start and end year', 
+  min = min(nutrient_data$year4), #get min max from data
+  max = max(nutrient_data$year4),
+  value = c(min(nutrient_data$year4), max(nutrient_data$year4)),
+  step = 1, #specifies the interval
+  round = T, #round to nearest integer
+  sep='' #Separator between 1000 places
+)
 
 # Create a renderPlot object to display the plot 
+renderPlot(
+  plot_it(
+    input$the_nutrient,
+    input$year_slider[1], 
+    input$year_slider[2]
+  )
+)
+
+#add text
+renderText(
+  paste("You selected", input$the_nutrient)
+)
+
 # created with the plot_it function
 
 
