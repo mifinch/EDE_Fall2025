@@ -50,7 +50,7 @@ ggplot(data=data.frame(x=0,y=0))+
   geom_text(
     x=0,
     y=0.025,
-    label=expression(paste("Mean is ", mu,",", R^{2},"=0.6"))
+    label=expression(paste("Mean is ", mu,",", R^{2},"=0.6")),
     parse=TRUE
     )
 
@@ -104,21 +104,38 @@ class(PeterPaul.chem.nutrients$month) #integer
 unique(PeterPaul.chem.nutrients$month)
 
 #Plot how many Lake observations occur each month
-ggplot(PeterPaul.chem.nutrients,
-       aes(x=month),
+PeterPaul.chem.nutrients %>%
+ggplot() +
+geom_bar(aes(x=month))
 
 #Convert month to a factor -- with 12 levels, labelled with month names
-
+#factor(PeterPaul.chem.nutrients$month,
+# levels = 1:12,
+# labels = month.abb)
 
 #Try again: Plot how many Lake observations occur each month
+ggplot(PeterPaul.chem.nutrients,
+       aes(x=factor(month,levels = 1:12, labels = month.abb)))+
+  geom_bar()
 
-
-#Alter to include missing months
-
+#Alter to include missing months that were dropped
+ggplot(
+  PeterPaul.chem.nutrients,
+  aes(x=factor(month,levels = 1:12, labels = month.abb)))+
+  scale_x_discrete(drop=F) +
+  geom_bar()
+)
 
 #Tidy up the code
+the_plot <- PeterPaul.chem.nutrients %>% 
+  ggplot(
+    aes(x=factor(month,levels = 1:12, labels = month.abb)))+
+    geom_bar()+
+    scale_x_discrete(name='Month',
+                     drop=F) 
+)
 
-
+the_plot + theme_light()
 ```
 
 
@@ -247,8 +264,8 @@ PeterPaul.chem.nutrients %>%
   filter(depth == 0) %>% 
   ggplot(aes(x = daynum, y = temperature_C, color = year4)) + 
   geom_point() +
-  facet_wrap(facets=vars(lakename), nrow=2)+ #facet by lake in 2 rows
-  ylab("Temperature (C)")+
+  facet_wrap(facets=vars(lakename), nrow=1,ncol=2)+ #facet by lake in 2 rows
+  ylab(expression("Temperature "*~degree*C))+
   xlab("Day") +
   labs(color = "Year")
 
@@ -286,7 +303,8 @@ Exercise: Plot relationships between air quality measurements
 # Add a line of best fit for the linear regression of these variables.
 
 EPAair %>% 
-  ggplot(aes(x= PM2.5, y=Ozone, color = mean_Lat), alpha = 0.5) + 
+  ggplot(aes(
+    x= PM2.5, y=Ozone, color = mean_Lat), alpha = 0.5) + 
   geom_point() + 
   geom_smooth(
     method = lm,
@@ -306,7 +324,29 @@ Exercise: Plot distributions of AQI values for EPAair.
 # Create several types of plots depicting PM2.5, divided by year. 
 # Choose which plot displays the data best and justify your choice. 
 
+EPAair %>%
+  ggplot(aes(
+    x=factor(Year),
+    y=PM2.5,
+    color=factor(Year)
+    )
+) +
+geom_boxplot()+
+labs(
+    x='Year',
+    color='Year')
 
+##violin plot
+ggplot(EPAair,aes(x=PM2.5,y=as.factor(Year)))+
+  geom_violin() +
+  ylab('Year') +
+  labs(fill='Year')
+
+#density ridges
+ggplot(EPAair,aes(x=PM2.5,y=as.factor(Year)))+
+  geom_density_ridges(aes(fill=as.factor(Year)))+
+  ylab('Year') +
+  labs(fill='Year')
 
 ```
 
@@ -330,5 +370,24 @@ ggplot(Neonics) +
   geom_bar(aes(x = Endpoint))
 
 
+#Using reorder
+ggplot(Neonics,aes(x=reorder(Endpoint, Endpoint, function(x) 1-length(x)))) +
+  geom_bar() +
+  labs(x='Endpoint') +
+  theme( axis.text.x = element_text(
+  angle = 90,
+  vjust = 0.5,
+  hjust=1)
+)
+
+#using forcats
+ggplot(Neonics,aes(x=fct_infreq(Endpoint)))+
+  geom_bar(stats='count') +
+  labs(x='Endpoint') +
+  theme( axis.text.x = element_text(
+  angle = 90,
+  vjust = 0.5,
+  hjust=1)
+)
 
 ```
