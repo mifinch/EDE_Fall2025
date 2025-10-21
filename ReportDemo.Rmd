@@ -12,22 +12,21 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## R Markdown
+
 ### subheader
 
->This is a block quote
+> This is a block quote
 
-1. Step 1
-2. Step 2
-3. Step 3
+1.  Step 1
+2.  Step 2
+3.  Step 3
 
-1. step
-1. step
-1. step
+*first bullet* second bullet
 
-
-*first bullet
-*second bullet
-  *sub-bullet
+| First Header | Second Header |
+|--------------|---------------|
+| Content Cell | Content Cell  |
+| Content Cell | Content Cell  |
 
 This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
@@ -47,12 +46,9 @@ plot(pressure)
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
 
-
-
 ```{r demo chunk, echo=F}
 #show output only
 x=1
 y=13
 print (x + y)
 ```
-
