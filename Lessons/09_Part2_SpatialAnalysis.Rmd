@@ -75,10 +75,11 @@ class(epa_pm25_sites_sf)
 
 #What is its CRS again?
 st_crs(epa_pm25_sites_sf)
+st_crs(epa_pm25_sites_sf)$epsg
 
 #Plot the data
 ggplot(data=epa_pm25_sites_sf) +
-  geom_sf()
+  geom_sf(aes(color=meanPM))
 ```
 
 ## 2.2 Reading shapefiles into R with `sf`
@@ -104,7 +105,7 @@ st_crs(counties_sf)$epsg
 nrow(counties_sf)
 
 #Reveal the extent of this dataset via the st_bbox() function
-st_bbox(counties_sf)
+st_bbox(counties_sf) #min and max
 
 #Plot the data (by area of land)
 mapView(counties_sf)
@@ -116,16 +117,17 @@ mapView(counties_sf)
 
 ```{r read HUCs shapefile}
 #Read the shapefile into an sf dataframe named "huc8_sf"
-huc8_sf <- 
+huc8_sf <- st_read(here('Data/Spatial/NCHUC8.shp'))
 
 #Reveal the column names
-
+colnames(huc8_sf)
 
 #Check the CRS
+st_crs(huc8_sf)$epsg #4326
 
 
 #View the data as a map, colored by the acreage in each
-
+mapview(huc8_sf,zcol='ACRES')
 
 ```
 
@@ -136,10 +138,73 @@ huc8_sf <-
 
 ```{r Select the Upper Neuse HUC 8}
 #Read the shapefile into an sf dataframe
-
+upper_neuse <- st_read(here('Data/Spatial/NCHUC8.shp')) %>% 
+  filter (SUBBASIN == 'Upper Neuse')
 
 #Create a map
+mapview(huc8_sf,col.regions='gray')+
+  mapview(upper_neuse,col.regions='yellow', color= 'blue')
 
+ggplot() + 
+  geom_sf(data = huc8_sf,color='gray') + 
+  geom_sf(data = upper_neuse, color='blue', fill='yellow')
+
+```
+
+## 2.3 Reading in GeoJSON data -- WE DISCUSS THIS IN THE SYNCRHONOUS SECTION
+
+More and more spatial data are appearing on-line, in a format that allows us to connect directly to the data vs downloading local copies to our workspace. An example is the Homeland Infrastructure Foundation-Level Data (HIFLD) Their open data site (<https://hifld-geoplatform.hub.arcgis.com/pages/hifld-open>) has links to many datasets.
+
+When the data is served in GeoJSON format, we can ingest it directly in to R. Follow these steps:
+  - Navigate to <https://hifld-geoplatform.hub.arcgis.com/pages/hifld-open>
+  - Scroll down to the Open Data Categories area. Select Energy (for example)
+  - Search for "power plants".
+  - Select the first return and open its [link](https://duke.is/8/jpzm).
+  - Click the "I want to use this" button at the bottom left of the page.
+  - Expand the "View API Resources" to view the link to the resource in GeoJSON format.
+  - Copy the link to the GeoJSON option.
+
+If you have difficulty, the link you want is: - <https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Plants_gdb/FeatureServer/0/query?outFields=*&where=1%3D1&f=geojson>
+This a link to a spatial dataset in GeoJSON format. Now let's read this dataset in and explore it:
+
+```{r load.geojson.data}
+###links don't work in container
+
+#Create the data source URL string
+data_source_URL <- paste0(
+  'https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/',
+  'Plants_gdb/FeatureServer/0/',
+  'query?outFields=*&where=1%3D1&f=geojson'
+)
+
+#Read the data from the URL into R as a dataframe
+powerplants_sf <- st_read(data_source_URL)
+
+#Reveal the field names
+colnames(powerplants_sf)
+
+#How many records
+nrow(powerplants_sf)
+
+#View on a map - specify the geometry column to draw faster
+plot(powerplants_sf$geometry)
+
+#Filter for just powerplants found in NC
+nc_powerplants_sf <- powerplants_sf %>% 
+  filter(STATE == "NC") 
+
+#Have a look the variety of types (and number of each)
+nc_powerplants_sf %>% 
+  st_drop_geometry() %>% 
+  count(TYPE, sort=TRUE)
+
+#Most are solar farms; let's remove those
+nc_powerplants_sf <- nc_powerplants_sf %>% 
+  filter(TYPE != "SOLAR PHOTOVOLTAIC")
+
+# Examine counts by fuel type
+ggplot(nc_powerplants_sf) + 
+  geom_sf(aes(color = PRIM_FUEL)) 
 
 ```
 
@@ -172,9 +237,10 @@ We'll focus on just a few variables:
 #Read the 2018 SVI county-level dataset for NC
 svi2020_nc_raw <- read.csv(
   'https://svi.cdc.gov/Documents/Data/2020/csv/states_counties/NorthCarolina_county.csv',
-  colClasses = c('FIPS' = 'factor')) %>% 
+  colClasses = c('FIPS' = 'factor')) %>% #bring in as factor
   select(COUNTY, FIPS, LOCATION, E_TOTPOP, E_POV150, E_MINRTY,
-         RPL_THEME1,RPL_THEME2,RPL_THEME3,RPL_THEME4) 
+         RPL_THEME1,RPL_THEME2,RPL_THEME3,RPL_THEME4)
+
 
 #Check structure
 glimpse(svi2020_nc_raw)
@@ -196,18 +262,18 @@ counties_sf_join <- counties_sf %>%
     by = c("GEOID" = "FIPS") 
     )
 
-#View with mapview
+#View with mapview - SVI and PM25
 mapview(counties_sf_join, 
-        zcol = 'E_POV150', 
-        col.regions = brewer.pal(2, 'RdBu')) + 
+        zcol = 'E_POV150', #feature colors
+        col.regions = brewer.pal(2, 'RdBu')) +  #palatte
   mapview(epa_pm25_sites_sf, cex = 'maxPM')
 
 #view with ggplot
 ggplot() + 
   geom_sf(data=counties_sf_join,aes(fill = RPL_THEME1),alpha=0.5) + 
-  scale_fill_gradient2(low="red",high="blue",midpoint = 0.5) + 
+  scale_fill_gradient2(low="red",high="blue",midpoint = 0.5) + #specify color ramp
   geom_sf(data=epa_pm25_sites_sf) +
-  labs(fill='Socio\nEcononomic\nIndex')
+  labs(fill='Socio\nEcononomic\nIndex') #\n parses title across lines
 
 ```
 
@@ -216,14 +282,31 @@ ggplot() +
   - Also, use the mutate function to compute HUC8 as the first 8 characters of the HUC12 field: see the `substr()` function. 
 
 ```{r}
+#What is a HUC
+##hydrologic unit code - defines a drainage area
+
 #Import data, setting HUC_12 to be factors, and computing a HUC_8 column
+wind_raw <- read.csv(
+  'https://raw.githubusercontent.com/ENV859/EnviroAtlasData/main/Wind_Energy.csv',
+  colClasses = c('HUC_12' = 'factor')) %>% #bring in as factor
+  mutate(HUC8 = substr(HUC_12, 0,8)) %>%  #extract 1st 8 digits
+  group_by(HUC8) %>% 
+  summarize(
+    WindEnergy = sum(AvgWindEnergy) 
+  )       
 
   
 #Join to HUC_8 features
+huc8_sf_join <- huc8_sf %>% 
+  left_join(wind_raw,by = c("HUC_8" = "HUC8"))
+  
 
-
-#View the outputs
-
+#View the outputs - wind energy by HUC8
+ggplot() + 
+  geom_sf(data=huc8_sf_join, aes(fill = WindEnergy)) + 
+  labs(
+    title="Wind Energy by HUC 8", 
+    fill = 'MW/year')
 
 ```
 
@@ -239,7 +322,7 @@ state_sf <- counties_sf %>%
   group_by('STATEFP') %>% 
   summarize(ALAND = sum(ALAND))
 
-#View the data
+#View the aggregated data
 mapview(state_sf)
 ```
 
@@ -247,13 +330,27 @@ mapview(state_sf)
 
 ```{r Aggregate the HUC data on an attribute, saving as huc2_sf}
 #List the unique values in the DWQ_Basin field
+unique(huc8_sf$DWQ_Basin)
+
+
 
 
 #Summarize on DWQ Basin value
-huc2_sf <- 
+huc2_sf <- huc8_sf %>% 
+  group_by(DWQ_Basin) %>% 
+  summarize(
+    ACRES = sum(ACRES)
+  )
   
 
-#Map the data
+#Map the data - dissolved DWQ_Basin boundaries
+#using mapview
+mapview(huc8_sf,zcol="DWQ_Basin")
+mapview(huc2_sf,zcol="ACRES")
+
+#using ggplot
+ggplot() + geom_sf(data=huc8_sf,aes(fill=ACRES)) 
+ggplot() + geom_sf(data=huc2_sf,aes(fill=ACRES)) #dissolved
 
 
 ```
@@ -279,7 +376,7 @@ What I'm getting at is: it's often a good idea to project data before doing spat
 On top of projecting any geographic data to adjust for the limitations of the software, you'll also be wise to ensure all use the same CRS. This can be done with the `st_transform` command, supplying the EPSG code of the CRS that you want your data to be in. Let's get our main five sf objects all into a consistent CRS.
 
 ```{r Transform the datasets to other coordinate reference systems}
-#Convert all to UTM Zone 17 (crs = 26917)
+#Convert all to UTM Zone 17 (crs = 26917) - find on epsg.io
 epa_sf_utm <-      st_transform(epa_pm25_sites_sf, crs = 26917)
 counties_sf_utm <- st_transform(counties_sf, crs = 26917)
 state_sf_utm <-    st_transform(state_sf,crs = 26917)
@@ -298,7 +395,7 @@ In the exercise below, we'll subset one of the HUCs (Upper Neuse), and explore c
 neuse_sf <- huc2_utm %>% 
   filter(DWQ_Basin == "Neuse")
 
-#Start building a map object
+#Start building a map object of Neuse
 myMap = mapview(neuse_sf, 
                 col.regions = 'yellow', 
                 alpha.regions = 0.2,
@@ -320,7 +417,7 @@ neuse_counties_sf <- neuse_sf %>% st_intersection(counties_sf_utm)
 #View the result
 myMap + mapview(neuse_counties_sf, alpha.regions = 0)
 
-#Update the area the features, now that some are clipped
+#Update the area the features, now that some are clipped 
 neuse_counties_sf <- neuse_counties_sf %>% 
   mutate(Area_m2 = as.numeric(st_area(neuse_counties_sf$geometry)))
   
@@ -337,12 +434,15 @@ triCo <- counties_sf_utm %>%
 
   
 #Grab the intersecting HUC_8s
-
+huc8_sf_utm %>% 
+  st_filter(triCo) %>% 
+  mapview()
 
 
 #Intersect the HUC_8s
-
-
+huc8_sf_utm %>% 
+  st_intersection(triCo) %>% 
+  mapview()
 ```
 
 ## 3.4 Geometry manipulations
@@ -355,6 +455,7 @@ Here, we'll explore some of these operations on spatial features so you can get 
 #Plot
 myMap = ggplot() + 
   geom_sf(data = triCo)
+
 myMap
 
 #Extract the centroids of the selected features and show them
@@ -377,12 +478,14 @@ triCo_centroids_chull <- triCo_centroids %>%
   st_union() %>% 
   st_convex_hull()
 myMap <- myMap + geom_sf(data = triCo_centroids_chull, color = 'red', fill=NA)
-myMap
+
+myMap #draws lines between the center points
 
 #Combine the centroids into one feature and draw voronoi polygons
 triCo_centroids_voronoi <- triCo_centroids %>% 
   st_union() %>% 
   st_voronoi()
+
 myMap <- myMap + geom_sf(data = triCo_centroids_voronoi, color = 'purple', fill=NA)
 myMap
 
@@ -407,6 +510,7 @@ theSite_sfc <- st_sfc(theSite_sfp, crs = 4326)
 theSite_sfc_transformed <- st_transform(theSite_sfc, crs = st_crs(counties_sf_utm))
 
 #Create a boolean mask 
+##returns false, true if intersects
 resultMask <- st_intersects(counties_sf_utm, 
                             theSite_sfc_transformed,
                             sparse = FALSE) #The `sparse` option returns a Boolean mask
@@ -422,7 +526,8 @@ mapView(counties_sf[resultMask,])
 > Questions: how might we use the `st_buffer` function to show all counties within 30km of the site?
 
 ```{r Select counties within a 30 km area from the site}
-
+the_site_counties <- theSite_sfc_transformed %>% 
+  st_buffer(.,dist=30000)
                             
 ```
 
@@ -435,18 +540,18 @@ Lastly, let's take a deeper dive into the various ways to visualize our spatial 
 When we import sf, we add the `geom_sf` option to ggplot. This geometry works much like other geoms, but with a few additional options. Here we see that order of plotting is important.
 
 ```{r Vsualizing mulitple dataset with ggplot}
-#Wrong order
+#Wrong order covers up layers
 ggplot()  +
   geom_sf(data = epa_sf_utm, color='white', size=2) +
   geom_sf(data = counties_sf_utm, aes(fill = ALAND), color = 'white')  +
   geom_sf(data = state_sf_utm, color='red',size=2) + 
   scale_fill_gradient(low="yellow", high="darkgreen")
 
-#Right order
+#Right order shows points and lines
 ggplot() +
   geom_sf(data = state_sf_utm, color='red',size=2) +
   geom_sf(data = counties_sf_utm, aes(fill = ALAND), color = 'white')  +
-  geom_sf(data = epa_sf_utm, color='blue', size=2) + 
+  geom_sf(data = epa_sf_utm, color='blue', size=2) + #point layer added at the end
   scale_fill_gradient(low="yellow", high="darkgreen")
 ```
 
